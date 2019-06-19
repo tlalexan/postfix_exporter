@@ -372,22 +372,22 @@ func (e *PostfixExporter) CollectFromLogline(line string) {
 				if err != nil {
 					log.Printf("Couldn't convert SMTP pdelay: %v", err)
 				}
-				e.smtpDelays.WithLabelValues("before_queue_manager").Observe(pdelay)
+				e.smtpDelays.WithLabelValues(smtpMatches[1], "before_queue_manager").Observe(pdelay)
 				adelay, err := strconv.ParseFloat(smtpMatches[3], 64)
 				if err != nil {
 					log.Printf("Couldn't convert SMTP adelay: %v", err)
 				}
-				e.smtpDelays.WithLabelValues("queue_manager").Observe(adelay)
+				e.smtpDelays.WithLabelValues(smtpMatches[1], "queue_manager").Observe(adelay)
 				sdelay, err := strconv.ParseFloat(smtpMatches[4], 64)
 				if err != nil {
 					log.Printf("Couldn't convert SMTP sdelay: %v", err)
 				}
-				e.smtpDelays.WithLabelValues("connection_setup").Observe(sdelay)
+				e.smtpDelays.WithLabelValues(smtpMatches[1], "connection_setup").Observe(sdelay)
 				xdelay, err := strconv.ParseFloat(smtpMatches[5], 64)
 				if err != nil {
 					log.Printf("Couldn't convert SMTP xdelay: %v", err)
 				}
-				e.smtpDelays.WithLabelValues("transmission").Observe(xdelay)
+				e.smtpDelays.WithLabelValues(smtpMatches[1], "transmission").Observe(xdelay)
 			} else if smtpTLSMatches := smtpTLSLine.FindStringSubmatch(logMatches[2]); smtpTLSMatches != nil {
 				e.smtpTLSConnects.WithLabelValues(smtpTLSMatches[1:]...).Inc()
 			} else {
@@ -506,7 +506,7 @@ func NewPostfixExporter(showqPath string, logfilePath string, journal *Journal) 
 				Help:      "SMTP message processing time in seconds.",
 				Buckets:   []float64{1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3},
 			},
-			[]string{"stage"}),
+			[]string{"relay", "stage"}),
 		smtpTLSConnects: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: "postfix",
